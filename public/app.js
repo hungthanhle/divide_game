@@ -13,6 +13,101 @@ let currentPage = 1;
 const ITEMS_PER_PAGE = 10;
 
 /**
+ * Analytics Utility
+ */
+const logPageView = () => {
+    if (typeof gtag !== 'function') return;
+    gtag('event', 'page_view', {
+        page_title: document.title,
+        page_location: window.location.href,
+        page_path: window.location.pathname
+    });
+    analyzeTrafficSource();
+};
+
+const analyzeTrafficSource = () => {
+    if (typeof gtag !== 'function') return;
+    const referrer = document.referrer;
+    const referrerDomain = referrer ? new URL(referrer).hostname : 'direct';
+    const urlParams = new URLSearchParams(window.location.search);
+    const utmSource = urlParams.get('utm_source');
+    const utmMedium = urlParams.get('utm_medium');
+    const fbclid = urlParams.get('fbclid');
+    const gclid = urlParams.get('gclid');
+
+    let trafficSource = 'direct';
+    let trafficMedium = 'none';
+
+    if (utmSource) {
+        trafficSource = utmSource;
+        trafficMedium = utmMedium || 'referral';
+    } else if (fbclid) {
+        trafficSource = 'facebook';
+        trafficMedium = 'social';
+    } else if (gclid) {
+        trafficSource = 'google';
+        trafficMedium = 'cpc';
+    } else if (referrer) {
+        if (referrerDomain.includes('google')) {
+            trafficSource = 'google';
+            trafficMedium = 'organic';
+        } else if (referrerDomain.includes('facebook.com') || referrerDomain.includes('fb.com')) {
+            trafficSource = 'facebook';
+            trafficMedium = 'social';
+        } else if (referrerDomain.includes('instagram.com')) {
+            trafficSource = 'instagram';
+            trafficMedium = 'social';
+        } else if (referrerDomain.includes('tiktok.com')) {
+            trafficSource = 'tiktok';
+            trafficMedium = 'social';
+        } else {
+            trafficSource = referrerDomain;
+            trafficMedium = 'referral';
+        }
+    }
+
+    gtag('event', 'traffic_source_visit', {
+        event_category: 'Traffic Source',
+        event_label: `${trafficSource} / ${trafficMedium}`,
+        traffic_source: trafficSource,
+        traffic_medium: trafficMedium,
+        referrer: referrerDomain
+    });
+};
+
+/**
+ * Send a concise summary to Google Analytics when the summary changes.
+ * modeLabel: human readable mode name
+ * netResults: { name: amount }
+ */
+// function sendSummaryToGA(netResults) {
+//     if (typeof gtag !== 'function') return;
+
+//     const entries = Object.entries(netResults || {});
+//     const totalPlayers = entries.length;
+//     if (totalPlayers === 0) return;
+
+//     try {
+//         // Build params and coerce numeric values
+//         const params = {
+//             event_category: 'SUMARY',
+//             // Compact per-player summary string for easier inspection in GA DebugView
+//             players_summary: entries.map(([n,a]) => `${n}:${Number(a)}`).join(',')
+//         };
+
+//         // Remove undefined keys (GA may drop params with undefined values)
+//         Object.keys(params).forEach(k => params[k] === undefined && delete params[k]);
+
+//         // If you want to enable debug view for GA, append ?debug_ga=1 to the URL
+//         if (window.location.search.indexOf('debug_ga=1') !== -1) params.debug_mode = true;
+
+//         gtag('event', 'summary_updated', params);
+//     } catch (e) {
+//         console.warn('GA summary event failed', e);
+//     }
+// }
+
+/**
  * Initialize IndexedDB
  */
 async function sandbox_gamble_initDB() {
@@ -703,7 +798,25 @@ document.getElementById('submit-round-btn').addEventListener('click', async () =
             }
 
             lastRoundDetails.innerHTML = html;
-            
+
+            // // Build netResults per player for GA summary
+            // const netResults = {};
+            // players.forEach(p => netResults[p.name] = 0);
+            // // historyDetails holds main adjustments (amounts already represent net per player for this round)
+            // historyDetails.forEach(d => {
+            //     netResults[d.name] = (netResults[d.name] || 0) + d.amount;
+            // });
+            // // include bonuses
+            // (bonuses || []).forEach(b => {
+            //     netResults[b.name] = (netResults[b.name] || 0) + b.amount;
+            // });
+            // // Send summary to Google Analytics
+            // try {
+            //     sendSummaryToGA(netResults);
+            // } catch (e) {
+            //     console.warn('sendSummaryToGA failed', e);
+            // }
+
             // Reset UI smoothly
             loseInput.value = '';
             winInput.value = '';
@@ -753,4 +866,5 @@ document.getElementById('reset-btn').addEventListener('click', async () => {
 window.addEventListener('load', async () => {
     await sandbox_gamble_initDB();
     await updateUI();
+    logPageView();
 });

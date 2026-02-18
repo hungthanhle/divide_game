@@ -104,10 +104,9 @@ if ('webkitSpeechRecognition' in window) {
 
     recognition.onstart = () => {
         isRecording = true;
-        const voiceBtn = document.getElementById('voice-btn');
-        voiceBtn.classList.add('recording');
-        voiceBtn.innerHTML = '<i data-lucide="square" class="w-6 h-6 text-white"></i>';
-        lucide.createIcons();
+        document.getElementById('voice-btn').classList.add('recording');
+        document.getElementById('mic-icon').classList.add('hidden');
+        document.getElementById('stop-icon').classList.remove('hidden');
     };
 
     recognition.onresult = (event) => {
@@ -115,6 +114,7 @@ if ('webkitSpeechRecognition' in window) {
         const inputEl = document.getElementById('round-input');
         inputEl.value = transcript;
         document.getElementById('voice-review-hint').classList.remove('hidden');
+        recognition.stop(); // Tự động dừng sau khi có kết quả
     };
 
     recognition.onerror = (event) => {
@@ -131,8 +131,8 @@ function stopRecordingUI() {
     isRecording = false;
     const voiceBtn = document.getElementById('voice-btn');
     voiceBtn.classList.remove('recording');
-    voiceBtn.innerHTML = '<i data-lucide="mic" class="w-6 h-6 text-amber-500"></i>';
-    lucide.createIcons();
+    document.getElementById('mic-icon').classList.remove('hidden');
+    document.getElementById('stop-icon').classList.add('hidden');
 }
 
 // --- Modal Controls ---
@@ -196,7 +196,7 @@ async function updateUI() {
                 // Group details to show summary style
                 let detailsHtml = h.details.map(d => `
                     <div class="flex justify-between text-xs py-1 border-b border-amber-500/10 last:border-0">
-                        <span class="text-amber-50 font-medium">${d.name}</span>
+                        <span class="text-tet-light font-medium">${d.name}</span>
                         <span class="font-black ${d.amount > 0 ? 'text-yellow-400' : 'text-red-500'}">
                             ${d.amount > 0 ? '+' : ''}${d.amount.toLocaleString()}
                         </span>
@@ -233,7 +233,7 @@ async function updateUI() {
 function renderSetupChips() {
     const chipContainer = document.getElementById('player-chips');
     chipContainer.innerHTML = setupPlayers.map((name, i) => `
-        <div class="player-chip bg-amber-500/20 border border-amber-500/40 text-amber-50 px-4 py-2 rounded-2xl flex items-center text-xs font-bold uppercase tracking-wider shadow-sm">
+        <div class="player-chip bg-amber-500/20 border border-amber-500/40 text-tet-light px-4 py-2 rounded-2xl flex items-center text-xs font-bold uppercase tracking-wider shadow-sm">
             ${name}
             <button onclick="removeSetupPlayer(${i})" class="ml-3 text-slate-100 hover:text-white transition-colors">
                 <i data-lucide="x" class="w-3.5 h-3.5"></i>

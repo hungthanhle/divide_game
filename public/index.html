@@ -13,6 +13,9 @@
             background-color: #450a0a;
             color: #fefce8;
         }
+        .text-tet-gold { color: #facc15; } /* amber-400 */
+        .text-tet-light { color: #fefce8; } /* amber-50 */
+        .text-tet-dim { color: #d97706; } /* amber-600 */
         .glass {
             background: rgba(127, 29, 29, 0.4);
             backdrop-filter: blur(20px);
@@ -113,8 +116,8 @@
 
         <!-- Setup Section -->
         <div id="setup-section" class="glass rounded-[32px] p-8 mb-6 shadow-2xl">
-            <h2 class="text-xl font-bold mb-6 flex items-center">
-                <i data-lucide="sun" class="w-6 h-6 mr-3 text-amber-500"></i>
+            <h2 class="text-xl font-bold mb-6 flex items-center text-tet-gold">
+                <i data-lucide="sun" class="w-6 h-6 mr-3"></i>
                 Danh sách "con nợ"
             </h2>
             <div class="space-y-6">
@@ -148,7 +151,8 @@
                         spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"
                         class="w-full bg-red-950/30 border border-amber-500/10 rounded-2xl pl-6 pr-16 py-6 focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all text-amber-50 text-xm font-medium placeholder:text-white/40">
                     <button id="voice-btn" class="absolute right-3 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-xl bg-amber-950/50 hover:bg-amber-900 transition-all border border-amber-500/20">
-                        <i data-lucide="mic" class="w-6 h-6 text-amber-500"></i>
+                        <i data-lucide="mic" id="mic-icon" class="w-6 h-6 text-amber-500"></i>
+                        <i data-lucide="square" id="stop-icon" class="w-6 h-6 text-white hidden"></i>
                     </button>
                 </div>
                 
@@ -172,9 +176,8 @@
                 </div>
             </div>
 
-            <!-- History Section -->
             <div id="history-section" class="hidden space-y-4">
-                 <h3 class="text-[10px] font-black text-amber-200/40 px-2 uppercase tracking-[0.2em]">Lịch sử đối soát</h3>
+                 <h3 class="text-[10px] font-black text-tet-gold/60 px-2 uppercase tracking-[0.2em]">Lịch sử đối soát</h3>
                  <div id="history-list" class="space-y-4"></div>
             </div>
         </div>

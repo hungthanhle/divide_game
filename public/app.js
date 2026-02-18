@@ -9,6 +9,8 @@ const STORE_HISTORY = 'history';
 
 let db;
 let setupPlayers = [];
+let currentPage = 1;
+const ITEMS_PER_PAGE = 10;
 
 /**
  * Initialize IndexedDB
@@ -258,9 +260,15 @@ async function updateUI() {
 
         if (history.length > 0) {
             document.getElementById('history-section').classList.remove('hidden');
+            const totalPages = Math.ceil(history.length / ITEMS_PER_PAGE);
+            if (currentPage > totalPages) currentPage = totalPages || 1;
+
             const reversedHistory = [...history].reverse();
-            historyList.innerHTML = reversedHistory.map((h, i) => {
-                const roundIndex = history.length - i;
+            const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+            const paginatedHistory = reversedHistory.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+            historyList.innerHTML = paginatedHistory.map((h, i) => {
+                const roundIndex = history.length - (startIndex + i);
                 
                 // Calculate net results for summary view
                 const netResults = {};
@@ -350,6 +358,24 @@ async function updateUI() {
                 </div>
                 `;
             }).join('');
+
+            // Paging Controls
+            if (totalPages > 1) {
+                historyList.innerHTML += `
+                    <div class="flex items-center justify-center gap-4 mt-8 pb-4">
+                        <button onclick="changePage(-1)" ${currentPage === 1 ? 'disabled' : ''} 
+                            class="w-10 h-10 flex items-center justify-center rounded-xl bg-red-950/40 border border-amber-500/10 text-amber-500 disabled:opacity-20 disabled:grayscale transition-all hover:bg-amber-500/10">
+                            <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                        </button>
+                        <span class="text-[10px] font-black text-amber-500/50 uppercase tracking-widest">${currentPage} / ${totalPages}</span>
+                        <button onclick="changePage(1)" ${currentPage === totalPages ? 'disabled' : ''} 
+                            class="w-10 h-10 flex items-center justify-center rounded-xl bg-red-950/40 border border-amber-500/10 text-amber-500 disabled:opacity-20 disabled:grayscale transition-all hover:bg-amber-500/10">
+                            <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                `;
+            }
+
             lucide.createIcons();
         } else {
             document.getElementById('history-section').classList.add('hidden');
@@ -408,11 +434,21 @@ window.handleDeleteRound = async (id) => {
     }
 };
 
+window.changePage = (delta) => {
+    currentPage += delta;
+    updateUI();
+    document.getElementById('history-section').scrollIntoView({ behavior: 'smooth' });
+};
+
 // --- Event Listeners ---
 document.getElementById('player-name-input').addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
         const val = e.target.value.trim();
-        if (val && !setupPlayers.includes(val)) {
+        if (val) {
+            if (setupPlayers.includes(val)) {
+                alert('Tên người chơi này đã tồn tại!');
+                return;
+            }
             setupPlayers.push(val);
             e.target.value = '';
             renderSetupChips();
@@ -423,7 +459,11 @@ document.getElementById('player-name-input').addEventListener('keypress', (e) =>
 document.getElementById('add-player-btn').addEventListener('click', () => {
     const el = document.getElementById('player-name-input');
     const val = el.value.trim();
-    if (val && !setupPlayers.includes(val)) {
+    if (val) {
+        if (setupPlayers.includes(val)) {
+            alert('Tên người chơi này đã tồn tại!');
+            return;
+        }
         setupPlayers.push(val);
         el.value = '';
         renderSetupChips();

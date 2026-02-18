@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gamble Tracker - Máy Tính Tiền Thắng Thua</title>
+    <title>Gamble Tracker - Tính Tiền Thắng Thua</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -66,37 +66,42 @@
 
     <div class="max-w-md mx-auto w-full px-4 pt-8 pb-32 flex-grow overflow-y-auto">
         <!-- Header -->
-        <header class="flex justify-between items-center mb-10">
+        <header class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-black italic tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-cyan-400">
-                GAMBLE TRACKER
+                TÍNH TIỀN THẮNG THUA
             </h1>
             <button id="reset-btn" class="text-[10px] font-black uppercase tracking-[0.2em] px-5 py-2 rounded-full bg-slate-800 text-slate-400 border border-white/5 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 transition-all">
                 Reset
             </button>
         </header>
 
-        <!-- Elegant Instruction -->
-        <div class="mb-10 px-2">
-            <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Cách chơi nhanh</h3>
-            <div class="grid grid-cols-3 gap-4">
-                <div class="space-y-2 text-center">
-                    <div class="w-8 h-8 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mx-auto">
-                        <span class="text-[10px] font-black text-indigo-400 italic">01</span>
+        <!-- Elegant Instruction Accordion -->
+        <div id="instruction-accordion" class="mb-10 px-2">
+            <button class="w-full flex items-center justify-between group">
+                <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] group-hover:text-slate-400 transition-colors">Cách chơi nhanh</h3>
+                <i data-lucide="chevron-down" id="instruction-arrow" class="w-4 h-4 text-slate-500 transition-transform duration-300"></i>
+            </button>
+            <div id="instruction-content" class="overflow-hidden transition-all duration-300 mt-6 overflow-hidden max-h-[500px]">
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="space-y-2 text-center">
+                        <div class="w-8 h-8 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mx-auto">
+                            <span class="text-[10px] font-black text-indigo-400 italic">01</span>
+                        </div>
+                        <p class="text-[10px] text-slate-400 font-medium leading-tight">Thiết lập người chơi</p>
                     </div>
-                    <p class="text-[10px] text-slate-400 font-medium leading-tight">Thiết lập người chơi</p>
-                </div>
-                <div class="space-y-2 text-center">
-                    <div class="w-8 h-8 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mx-auto">
-                        <span class="text-[10px] font-black text-indigo-400 italic">02</span>
+                    <div class="space-y-2 text-center">
+                        <div class="w-8 h-8 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mx-auto">
+                            <span class="text-[10px] font-black text-indigo-400 italic">02</span>
+                        </div>
+                        <p class="text-[10px] text-slate-400 font-medium leading-tight">Đọc kq qua Mic (người mất tiền)</p>
+                        <p class="text-[10px] text-slate-400 font-medium leading-tight">VD: "Sơn 10 Tuấn Anh 20 Lâm 30"</p>
+                      </div>
+                    <div class="space-y-2 text-center">
+                        <div class="w-8 h-8 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mx-auto">
+                            <span class="text-[10px] font-black text-indigo-400 italic">03</span>
+                        </div>
+                        <p class="text-[10px] text-slate-400 font-medium leading-tight">Xác nhận & tổng kết</p>
                     </div>
-                    <p class="text-[10px] text-slate-400 font-medium leading-tight">Đọc kq qua Mic (người mất tiền)</p>
-                    <p class="text-[10px] text-slate-400 font-medium leading-tight">VD: "Sơn 10 Tuấn Anh 20 Lâm 30"</p>
-                  </div>
-                <div class="space-y-2 text-center">
-                    <div class="w-8 h-8 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mx-auto">
-                        <span class="text-[10px] font-black text-indigo-400 italic">03</span>
-                    </div>
-                    <p class="text-[10px] text-slate-400 font-medium leading-tight">Xác nhận & tổng kết</p>
                 </div>
             </div>
         </div>
@@ -112,7 +117,7 @@
                     <!-- Chips here -->
                 </div>
                 <div class="relative">
-                    <input type="text" id="player-name-input" placeholder="Nhập tên người chơi..." 
+                    <input type="text" id="player-name-input" placeholder="Nhập tên người chơi & Enter" 
                         class="w-full bg-slate-900 border border-white/5 rounded-2xl px-6 py-4 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-slate-100 placeholder:text-slate-600">
                     <button id="add-player-btn" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center text-indigo-400 hover:text-indigo-300">
                         <i data-lucide="plus" class="w-6 h-6"></i>
@@ -216,6 +221,26 @@
     <script src="app.js"></script>
     <script>
         lucide.createIcons();
+        
+        // Instruction Accordion Toggle
+        const instructionBtn = document.querySelector('#instruction-accordion button');
+        const instructionContent = document.getElementById('instruction-content');
+        const instructionArrow = document.getElementById('instruction-arrow');
+        
+        // Initial state: Expanded
+        instructionContent.style.maxHeight = '500px';
+        
+        instructionBtn.addEventListener('click', () => {
+            if (instructionContent.style.maxHeight !== '0px') {
+                instructionContent.style.maxHeight = '0px';
+                instructionContent.style.marginTop = '0px';
+                instructionArrow.style.transform = 'rotate(-180deg)';
+            } else {
+                instructionContent.style.maxHeight = '500px';
+                instructionContent.style.marginTop = '1.5rem';
+                instructionArrow.style.transform = 'rotate(0deg)';
+            }
+        });
     </script>
 </body>
 </html>

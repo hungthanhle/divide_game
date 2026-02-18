@@ -445,7 +445,7 @@ document.getElementById('player-name-input').addEventListener('keypress', (e) =>
     if (e.key === 'Enter') {
         const val = e.target.value.trim();
         if (val) {
-            if (setupPlayers.includes(val)) {
+            if (setupPlayers.some(p => p.toLowerCase() === val.toLowerCase())) {
                 alert('Tên người chơi này đã tồn tại!');
                 return;
             }
@@ -460,7 +460,7 @@ document.getElementById('add-player-btn').addEventListener('click', () => {
     const el = document.getElementById('player-name-input');
     const val = el.value.trim();
     if (val) {
-        if (setupPlayers.includes(val)) {
+        if (setupPlayers.some(p => p.toLowerCase() === val.toLowerCase())) {
             alert('Tên người chơi này đã tồn tại!');
             return;
         }

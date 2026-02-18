@@ -94,21 +94,45 @@ async function sandbox_gamble_getHistory() {
 
 // --- Voice Recognition ---
 let recognition;
+let isRecording = false;
+
 if ('webkitSpeechRecognition' in window) {
     recognition = new webkitSpeechRecognition();
     recognition.continuous = false;
     recognition.interimResults = false;
     recognition.lang = 'vi-VN';
 
+    recognition.onstart = () => {
+        isRecording = true;
+        const voiceBtn = document.getElementById('voice-btn');
+        voiceBtn.classList.add('recording');
+        voiceBtn.innerHTML = '<i data-lucide="square" class="w-6 h-6 text-white"></i>';
+        lucide.createIcons();
+    };
+
     recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
         const inputEl = document.getElementById('round-input');
         inputEl.value = transcript;
-        document.getElementById('voice-btn').classList.remove('recording');
         document.getElementById('voice-review-hint').classList.remove('hidden');
     };
-    recognition.onerror = () => document.getElementById('voice-btn').classList.remove('recording');
-    recognition.onend = () => document.getElementById('voice-btn').classList.remove('recording');
+
+    recognition.onerror = (event) => {
+        console.error('Speech recognition error', event.error);
+        stopRecordingUI();
+    };
+
+    recognition.onend = () => {
+        stopRecordingUI();
+    };
+}
+
+function stopRecordingUI() {
+    isRecording = false;
+    const voiceBtn = document.getElementById('voice-btn');
+    voiceBtn.classList.remove('recording');
+    voiceBtn.innerHTML = '<i data-lucide="mic" class="w-6 h-6 text-amber-500"></i>';
+    lucide.createIcons();
 }
 
 // --- Modal Controls ---
@@ -120,9 +144,9 @@ window.openSummary = async () => {
     const sorted = [...players].sort((a, b) => b.balance - a.balance);
 
     document.getElementById('modal-players-list').innerHTML = sorted.map(p => `
-        <div class="bg-white/5 border border-white/5 rounded-2xl px-5 py-4 flex justify-between items-center">
-            <span class="font-semibold text-slate-200">${p.name}</span>
-            <span class="font-black ${p.balance >= 0 ? 'text-emerald-400' : 'text-rose-400'}">
+        <div class="bg-red-900/20 border border-amber-500/10 rounded-2xl px-5 py-4 flex justify-between items-center">
+            <span class="font-semibold text-amber-50">${p.name}</span>
+            <span class="font-black ${p.balance >= 0 ? 'text-yellow-400' : 'text-red-500'}">
                 ${p.balance > 0 ? '+' : ''}${p.balance.toLocaleString()}
             </span>
         </div>
@@ -171,9 +195,9 @@ async function updateUI() {
                 
                 // Group details to show summary style
                 let detailsHtml = h.details.map(d => `
-                    <div class="flex justify-between text-xs py-1 border-b border-amber-500/5 last:border-0">
-                        <span class="text-amber-200/60 font-medium">${d.name}</span>
-                        <span class="font-bold ${d.amount > 0 ? 'text-yellow-400' : 'text-red-400'}">
+                    <div class="flex justify-between text-xs py-1 border-b border-amber-500/10 last:border-0">
+                        <span class="text-amber-50 font-medium">${d.name}</span>
+                        <span class="font-black ${d.amount > 0 ? 'text-yellow-400' : 'text-red-500'}">
                             ${d.amount > 0 ? '+' : ''}${d.amount.toLocaleString()}
                         </span>
                     </div>
@@ -185,15 +209,15 @@ async function updateUI() {
                         <div class="flex items-center">
                             <div class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-2"></div>
                             <span class="text-[10px] font-black text-amber-400 uppercase tracking-widest">Ván ${roundIndex}</span>
-                            <span class="mx-2 text-amber-900/40">/</span>
-                            <span class="text-[10px] font-bold text-amber-200/40">${h.date}</span>
+                            <span class="mx-2 text-white/20">/</span>
+                            <span class="text-[10px] font-bold text-amber-100/40">${h.date}</span>
                         </div>
-                        <button onclick="handleDeleteRound(${h.id})" class="text-amber-900/60 hover:text-red-500 transition-colors">
+                        <button onclick="handleDeleteRound(${h.id})" class="text-white/40 hover:text-red-500 transition-colors">
                             <i data-lucide="trash-2" class="w-4 h-4"></i>
                         </button>
                     </div>
-                    <!-- <div class="text-sm text-amber-50/80 font-medium mb-4 italic leading-relaxed">"${h.raw_input}"</div> -->
-                    <div class="space-y-1 bg-black/20 p-4 rounded-2xl border border-amber-500/10">
+                    <!-- <div class="text-sm text-amber-50 font-medium mb-4 italic leading-relaxed">"${h.raw_input}"</div> -->
+                    <div class="space-y-1 bg-black/30 p-4 rounded-2xl border border-amber-500/20">
                         ${detailsHtml}
                     </div>
                 </div>
@@ -209,7 +233,7 @@ async function updateUI() {
 function renderSetupChips() {
     const chipContainer = document.getElementById('player-chips');
     chipContainer.innerHTML = setupPlayers.map((name, i) => `
-        <div class="player-chip bg-amber-500/10 border border-amber-500/20 text-amber-400 px-4 py-2 rounded-2xl flex items-center text-xs font-bold uppercase tracking-wider">
+        <div class="player-chip bg-amber-500/20 border border-amber-500/40 text-amber-50 px-4 py-2 rounded-2xl flex items-center text-xs font-bold uppercase tracking-wider shadow-sm">
             ${name}
             <button onclick="removeSetupPlayer(${i})" class="ml-3 text-slate-100 hover:text-white transition-colors">
                 <i data-lucide="x" class="w-3.5 h-3.5"></i>
@@ -269,8 +293,11 @@ document.getElementById('start-game-btn').addEventListener('click', async () => 
 
 document.getElementById('voice-btn').addEventListener('click', () => {
     if (recognition) {
-        document.getElementById('voice-btn').classList.add('recording');
-        recognition.start();
+        if (isRecording) {
+            recognition.stop();
+        } else {
+            recognition.start();
+        }
     } else alert('Trình duyệt không hỗ trợ Mic!');
 });
 
@@ -342,9 +369,9 @@ document.getElementById('submit-round-btn').addEventListener('click', async () =
             const lastRoundDetails = document.getElementById('last-round-details');
             lastRoundContainer.classList.remove('hidden');
             lastRoundDetails.innerHTML = details.map(d => `
-                <div class="flex justify-between text-sm py-1 border-b border-white/5 last:border-0">
-                    <span class="text-slate-400 font-medium">${d.name}</span>
-                    <span class="font-bold ${d.amount > 0 ? 'text-emerald-400' : 'text-rose-400'}">
+                <div class="flex justify-between text-sm py-1 border-b border-amber-500/5 last:border-0">
+                    <span class="text-amber-50 font-medium">${d.name}</span>
+                    <span class="font-black ${d.amount > 0 ? 'text-yellow-400' : 'text-red-400'}">
                         ${d.amount > 0 ? '+' : ''}${d.amount.toLocaleString()}
                     </span>
                 </div>

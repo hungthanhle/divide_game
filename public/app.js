@@ -234,6 +234,20 @@ async function updateUI() {
         gameSection.classList.remove('hidden');
         summaryDock.classList.remove('hidden');
 
+        // Populate structured input list for Input mode
+        const structuredList = document.getElementById('structured-input-list');
+        if (structuredList && structuredList.children.length !== players.length) {
+            structuredList.innerHTML = players.map(p => `
+                <div class="flex items-center bg-red-900/10 border border-amber-500/5 rounded-xl px-4 py-2 hover:border-amber-500/20 transition-all">
+                    <span class="text-[11px] font-bold text-amber-50/60 flex-grow uppercase whitespace-normal leading-tight pr-2">${p.name}</span>
+                    <input type="number" 
+                        data-player="${p.name}"
+                        class="player-structured-input w-20 bg-red-950/40 border-none rounded-lg px-2 py-1.5 text-xs text-amber-50 text-right focus:ring-1 focus:ring-amber-500/40 placeholder:text-white/5" 
+                        placeholder="+/- tiền">
+                </div>
+            `).join('');
+        }
+
         // Populate dynamic bonus selects
         document.querySelectorAll('.bonus-player-select').forEach(select => {
             const currentVal = select.value;
@@ -431,6 +445,37 @@ document.getElementById('start-game-btn').addEventListener('click', async () => 
 document.getElementById('voice-lose-btn').addEventListener('click', function() { startRecording(this); });
 document.getElementById('voice-win-btn').addEventListener('click', function() { startRecording(this); });
 
+// Tab switching logic
+let currentMode = 'basic';
+document.getElementById('tab-mode-basic').addEventListener('click', () => {
+    currentMode = 'basic';
+    document.getElementById('mode-basic-content').classList.remove('hidden');
+    document.getElementById('mode-advanced-content').classList.add('hidden');
+    document.getElementById('instr-voice').classList.remove('hidden');
+    document.getElementById('instr-input').classList.add('hidden');
+    document.getElementById('tab-mode-basic').className = 'flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl bg-amber-500 text-red-950 transition-all shadow-lg';
+    document.getElementById('tab-mode-advanced').className = 'flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl text-amber-500/40 hover:text-amber-500 transition-all';
+    
+    // Switch Icon to Mic
+    const icon = document.getElementById('game-mode-icon');
+    icon.setAttribute('data-lucide', 'mic-2');
+    lucide.createIcons();
+});
+document.getElementById('tab-mode-advanced').addEventListener('click', () => {
+    currentMode = 'advanced';
+    document.getElementById('mode-basic-content').classList.add('hidden');
+    document.getElementById('mode-advanced-content').classList.remove('hidden');
+    document.getElementById('instr-voice').classList.add('hidden');
+    document.getElementById('instr-input').classList.remove('hidden');
+    document.getElementById('tab-mode-basic').className = 'flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl text-amber-500/40 hover:text-amber-500 transition-all';
+    document.getElementById('tab-mode-advanced').className = 'flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl bg-amber-500 text-red-950 transition-all shadow-lg';
+    
+    // Switch Icon to Keyboard/Input
+    const icon = document.getElementById('game-mode-icon');
+    icon.setAttribute('data-lucide', 'keyboard');
+    lucide.createIcons();
+});
+
 // Bonus dynamic rows
 function addBonusRow(shouldUpdateUI = true) {
     const container = document.getElementById('bonus-rows');
@@ -477,13 +522,14 @@ document.getElementById('bonus-toggle').addEventListener('change', function() {
 });
 
 document.getElementById('submit-round-btn').addEventListener('click', async () => {
-    const loseVal = document.getElementById('lose-input').value.trim();
+    const loseInput = document.getElementById('lose-input');
+    const winInput = document.getElementById('win-input');
+    const loseVal = loseInput.value.trim();
     const winToggle = document.getElementById('win-toggle').checked;
-    const winVal = winToggle ? document.getElementById('win-input').value.trim() : '';
+    const winVal = winToggle ? winInput.value.trim() : '';
     const bonusToggle = document.getElementById('bonus-toggle').checked;
     
     // Collect Bonus Data
-    // ... (rest of collector logic)
     const bonuses = [];
     if (bonusToggle) {
         document.querySelectorAll('#bonus-rows > div').forEach(row => {
@@ -495,7 +541,8 @@ document.getElementById('submit-round-btn').addEventListener('click', async () =
         });
     }
 
-    if (!loseVal && !winVal && bonuses.length === 0) return;
+    if (currentMode === 'basic' && !loseVal && !winVal && bonuses.length === 0) return;
+    if (currentMode === 'advanced' && bonuses.length === 0 && document.querySelectorAll('.player-structured-input').length === 0) return;
     
     try {
         const players = await sandbox_gamble_getPlayers();
@@ -520,8 +567,25 @@ document.getElementById('submit-round-btn').addEventListener('click', async () =
             }
         };
 
-        parseInput(loseVal, false);
-        if (winToggle) parseInput(winVal, true);
+        if (currentMode === 'basic') {
+            parseInput(loseVal, false);
+            if (winToggle) parseInput(winVal, true);
+        } else {
+            // Input mode: Numeric inputs from structured list
+            document.querySelectorAll('.player-structured-input').forEach(input => {
+                const name = input.getAttribute('data-player');
+                const val = input.value.trim();
+                if (val !== '') {
+                    const amt = parseInt(val);
+                    // Conversion: Positive Win (+50) -> subtracted amount -50 (p.balance -= -50 => +50)
+                    // Match parseInput(winVal, true) logic: balanceShift = -amt
+                    const balanceShift = -amt;
+                    specified.push({ name, amount: balanceShift });
+                    totalSpecifiedAmt += balanceShift;
+                    seenNames.add(name);
+                }
+            });
+        }
 
         if (specified.length === 0 && bonuses.length === 0) throw new Error('Không có thông tin ván bài!');
         
@@ -562,7 +626,7 @@ document.getElementById('submit-round-btn').addEventListener('click', async () =
 
         hStore.put({
             id: Date.now(),
-            raw_input: `${loseVal}${winVal ? ' | ' + winVal : ''}`,
+            raw_input: currentMode === 'basic' ? `${loseVal}${winVal ? ' | ' + winVal : ''}` : 'Bảng nhập liệu',
             details: historyDetails,
             bonus: bonuses,
             date: new Date().toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'})
@@ -601,8 +665,9 @@ document.getElementById('submit-round-btn').addEventListener('click', async () =
             lastRoundDetails.innerHTML = html;
             
             // Reset UI smoothly
-            document.getElementById('lose-input').value = '';
-            document.getElementById('win-input').value = '';
+            loseInput.value = '';
+            winInput.value = '';
+            document.querySelectorAll('.player-structured-input').forEach(i => i.value = '');
             document.getElementById('bonus-rows').innerHTML = '';
             
             // Re-render only necessary parts or call updateUI once
@@ -623,11 +688,24 @@ document.getElementById('reset-btn').addEventListener('click', async () => {
     if (confirm('Xác nhận Reset? Toàn bộ dữ liệu sẽ bị xóa vĩnh viễn.')) {
         await sandbox_gamble_clearAll();
         setupPlayers = [];
+        
+        // Reset basic mode inputs
         document.getElementById('lose-input').value = '';
         document.getElementById('win-input').value = '';
+        document.getElementById('win-input').disabled = true;
         document.getElementById('win-toggle').checked = false;
-        document.getElementById('win-container').classList.add('hidden');
+        document.getElementById('voice-win-btn').disabled = true;
+
+        // Reset bonus state
+        const bonusToggle = document.getElementById('bonus-toggle');
+        bonusToggle.checked = false;
+        document.getElementById('bonus-container').classList.add('hidden');
+        document.getElementById('bonus-rows').innerHTML = '';
+
+        // UI containers
         document.getElementById('last-round-container').classList.add('hidden');
+        
+        // Re-render
         await updateUI();
     }
 });

@@ -138,23 +138,37 @@
         </div>
 
         <!-- Main Game Section -->
-        <div id="game-section" class="hidden space-y-8 mt-4">
+        <div id="game-section" class="hidden space-y-6 mt-4">
+            <!-- Tab Switcher (Top level) -->
+            <div class="flex p-1 bg-red-950/40 rounded-2xl border border-amber-500/10">
+                <button id="tab-mode-basic" class="flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl bg-amber-500 text-red-950 transition-all shadow-lg">Voice mode</button>
+                <button id="tab-mode-advanced" class="flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl text-amber-500/40 hover:text-amber-500 transition-all">Input mode</button>
+            </div>
+
             <!-- Input Round Section -->
             <div class="glass rounded-[32px] p-8 border-indigo-500/10 shadow-2xl">
                 <h2 class="text-xl font-bold mb-6 flex items-center">
-                    <i data-lucide="mic-2" class="w-6 h-6 mr-3 text-white"></i>
+                    <i id="game-mode-icon" data-lucide="mic-2" class="w-6 h-6 mr-3 text-white"></i>
                     Kết quả ván mới
                 </h2>
-                <!-- Friendly Guidance -->
-                <div class="mb-6 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10">
-                    <p class="text-xs text-amber-200/70 font-medium leading-relaxed flex items-start">
-                        <i data-lucide="sparkles" class="w-4 h-4 mr-2 text-tet-gold shrink-0 mt-0.5"></i>
-                        <span>Người nào <span class="text-tet-gold font-bold">không được nhắc tên</span> là <span class="text-tet-gold font-bold">"người ôm bàn"</span>
-                        <br/>- nhận tiền từ những người thua bên dưới</span>
-                    </p>
+
+                <!-- Mode Specific Guidance -->
+                <div class="mb-6 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10 min-h-[72px] flex items-center">
+                    <div id="instr-voice" class="animate-in fade-in duration-300">
+                        <p class="text-xs text-amber-200/70 font-medium leading-relaxed flex items-start">
+                            <i data-lucide="sparkles" class="w-4 h-4 mr-2 text-tet-gold shrink-0 mt-0.5"></i>
+                            <span>Người nào <span class="text-tet-gold font-bold">không được nhắc tên</span> là <span class="text-tet-gold font-bold">"người ôm bàn"</span> - nhận tiền từ những người thua bên dưới</span>
+                        </p>
+                    </div>
+                    <div id="instr-input" class="hidden animate-in fade-in duration-300">
+                        <p class="text-xs text-amber-200/70 font-medium leading-relaxed flex items-start">
+                            <i data-lucide="sparkles" class="w-4 h-4 mr-2 text-tet-gold shrink-0 mt-0.5"></i>
+                            <span>Có thể bỏ trống không nhập <span class="text-tet-gold font-bold">"người ôm bàn"</span>. Nếu điền đẩy đủ thì tính đầy đủ, nếu thiếu thì tính cho người không nhập.</span>
+                        </p>
+                    </div>
                 </div>
 
-                <div class="space-y-4">
+                <div id="mode-basic-content" class="space-y-6">
                     <!-- Losers Input (Mất tiền) -->
                     <div class="space-y-2">
                         <label class="text-[10px] font-black text-red-400 uppercase tracking-widest ml-1">Danh sách thua tiền</label>
@@ -169,7 +183,6 @@
                         </div>
                     </div>
 
-                    <!-- Winners Input (Nhận tiền) - Optional -->
                     <!-- Winners Input (Nhận tiền) - Optional -->
                     <div class="mt-6 space-y-2">
                         <label class="text-[10px] font-black text-tet-gold uppercase tracking-widest ml-1">Danh sách được nhận tiền</label>
@@ -191,6 +204,13 @@
                                 </label>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Input mode Content -->
+                <div id="mode-advanced-content" class="hidden animate-in fade-in slide-in-from-right-4 duration-300">
+                    <div id="structured-input-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <!-- Populated in updateUI -->
                     </div>
                 </div>
                 <!-- Bonus Toggle -->

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gamble Tracker - Máy Tính Tiền Thắng Thua</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #020617;
+            color: #f8fafc;
+        }
+        .glass {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-primary:active {
+            transform: scale(0.96);
+        }
+        .recording {
+            animation: pulse-indigo 1.5s infinite;
+            background: #ef4444 !important;
+        }
+        @keyframes pulse-indigo {
+            0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+        }
+        .player-chip {
+            animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes pop {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .history-card {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.6) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        /* Modal for Summary */
+        .modal {
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+        .modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body class="min-h-screen relative flex flex-col">
+    <!-- Background Decoration -->
+    <div class="fixed top-0 left-0 w-full h-full -z-10 overflow-hidden pointer-events-none">
+        <div class="absolute -top-[10%] -left-[10%] w-[60%] h-[60%] bg-indigo-600/10 rounded-full blur-[120px]"></div>
+        <div class="absolute bottom-0 -right-[10%] w-[50%] h-[50%] bg-blue-600/10 rounded-full blur-[120px]"></div>
+    </div>
+
+    <div class="max-w-md mx-auto w-full px-4 pt-8 pb-32 flex-grow overflow-y-auto">
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-10">
+            <h1 class="text-2xl font-black italic tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-cyan-400">
+                GAMBLE TRACKER
+            </h1>
+            <button id="reset-btn" class="text-[10px] font-black uppercase tracking-[0.2em] px-5 py-2 rounded-full bg-slate-800 text-slate-400 border border-white/5 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 transition-all">
+                Reset
+            </button>
+        </header>
+
+        <!-- Elegant Instruction -->
+        <div class="mb-10 px-2">
+            <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Cách chơi nhanh</h3>
+            <div class="grid grid-cols-3 gap-4">
+                <div class="space-y-2 text-center">
+                    <div class="w-8 h-8 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mx-auto">
+                        <span class="text-[10px] font-black text-indigo-400 italic">01</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 font-medium leading-tight">Thiết lập người chơi</p>
+                </div>
+                <div class="space-y-2 text-center">
+                    <div class="w-8 h-8 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mx-auto">
+                        <span class="text-[10px] font-black text-indigo-400 italic">02</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 font-medium leading-tight">Đọc kq qua Mic (người mất tiền)</p>
+                    <p class="text-[10px] text-slate-400 font-medium leading-tight">VD: "Sơn 10 Tuấn Anh 20 Lâm 30"</p>
+                  </div>
+                <div class="space-y-2 text-center">
+                    <div class="w-8 h-8 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mx-auto">
+                        <span class="text-[10px] font-black text-indigo-400 italic">03</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 font-medium leading-tight">Xác nhận & tổng kết</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Setup Section -->
+        <div id="setup-section" class="glass rounded-[32px] p-8 mb-6 shadow-2xl">
+            <h2 class="text-xl font-bold mb-6 flex items-center">
+                <i data-lucide="users" class="w-6 h-6 mr-3 text-indigo-500"></i>
+                Tham gia cuộc chơi
+            </h2>
+            <div class="space-y-6">
+                <div id="player-chips" class="flex flex-wrap gap-2.5">
+                    <!-- Chips here -->
+                </div>
+                <div class="relative">
+                    <input type="text" id="player-name-input" placeholder="Nhập tên người chơi..." 
+                        class="w-full bg-slate-900 border border-white/5 rounded-2xl px-6 py-4 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-slate-100 placeholder:text-slate-600">
+                    <button id="add-player-btn" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center text-indigo-400 hover:text-indigo-300">
+                        <i data-lucide="plus" class="w-6 h-6"></i>
+                    </button>
+                </div>
+                <button id="start-game-btn" class="hidden w-full btn-primary py-5 rounded-2xl font-black shadow-xl shadow-indigo-500/30 uppercase tracking-[0.2em] text-xs">
+                    Bắt đầu chơi
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Game Section -->
+        <div id="game-section" class="hidden space-y-8 mt-4">
+            <!-- Input Round Section -->
+            <div class="glass rounded-[32px] p-8 border-indigo-500/10 shadow-2xl">
+                <h2 class="text-xl font-bold mb-6 flex items-center">
+                    <i data-lucide="mic-2" class="w-6 h-6 mr-3 text-indigo-500"></i>
+                    Kết quả ván mới
+                </h2>
+                <div class="relative group">
+                    <input type="text" id="round-input" placeholder="Ví dụ: Sơn 10 Tuấn Anh 20 Lâm 30" 
+                        class="w-full bg-slate-900/50 border border-white/5 rounded-2xl pl-6 pr-16 py-6 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-slate-100 text-xm font-medium">
+                    <button id="voice-btn" class="absolute right-3 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-xl bg-slate-800 hover:bg-slate-750 transition-all border border-white/5">
+                        <i data-lucide="mic" class="w-6 h-6 text-indigo-500"></i>
+                    </button>
+                </div>
+                
+                <div id="voice-review-hint" class="hidden mt-4 p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-xs text-indigo-300 italic flex items-center">
+                    <i data-lucide="info" class="w-3 h-3 mr-2"></i>
+                    Kiểm tra & sửa lại văn bản trước khi xác nhận.
+                </div>
+
+                <button id="submit-round-btn" class="w-full mt-6 btn-primary py-5 rounded-2xl font-black shadow-xl shadow-indigo-500/30 uppercase tracking-[0.2em] text-xs flex items-center justify-center">
+                    Xác nhận kết quả
+                </button>
+            </div>
+
+            <!-- Last Round Results -->
+            <div id="last-round-container" class="hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+                 <div class="glass rounded-[32px] p-6 border-indigo-500/10">
+                    <h2 class="text-[10px] font-black mb-4 text-indigo-400 uppercase tracking-widest flex items-center">
+                        <i data-lucide="zap" class="w-4 h-4 mr-2"></i>
+                        Ván vừa nhập xong
+                    </h2>
+                    <div id="last-round-details" class="space-y-4"></div>
+                </div>
+            </div>
+
+            <!-- History Section -->
+            <div id="history-section" class="hidden space-y-4">
+                 <h3 class="text-[10px] font-black text-slate-500 px-2 uppercase tracking-[0.2em]">Lịch sử đối soát</h3>
+                 <div id="history-list" class="space-y-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sticky Footer Control -->
+    <div id="summary-dock" class="fixed bottom-0 left-0 w-full p-4 pointer-events-none hidden">
+        <div class="max-w-md mx-auto pointer-events-auto">
+            <button id="show-summary-btn" class="w-full bg-slate-900 border border-white/10 rounded-2xl p-5 mb-3 shadow-2xl flex items-center justify-between group hover:border-indigo-500/50 transition-all">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-full bg-indigo-500/10 flex items-center justify-center mr-4 group-hover:bg-indigo-500/20 transition-all">
+                        <i data-lucide="bar-chart-2" class="w-5 h-5 text-indigo-400"></i>
+                    </div>
+                    <div class="text-left">
+                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1.5">Trạng thái</p>
+                        <p class="text-sm font-bold text-slate-100">Bảng tổng kết tài chính</p>
+                    </div>
+                </div>
+                <i data-lucide="chevron-up" class="w-5 h-5 text-slate-500 group-hover:text-indigo-400 transition-all"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Summary Modal -->
+    <div id="summary-modal" class="modal fixed inset-0 z-50 flex items-end justify-center p-4">
+        <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onclick="closeSummary()"></div>
+        <div class="relative w-full max-w-md glass rounded-[40px] p-8 shadow-2xl border-white/10 translate-y-full transition-transform duration-500 modal-content">
+            <div class="w-12 h-1.5 bg-slate-800 rounded-full mx-auto mb-8 cursor-pointer" onclick="closeSummary()"></div>
+            
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <h2 class="text-2xl font-black italic tracking-tighter text-indigo-400">TỔNG KẾT</h2>
+                    <p class="text-xs text-slate-500 font-medium">Cập nhật sau ván mới nhất</p>
+                </div>
+                <div id="modal-player-count" class="px-4 py-2 bg-indigo-500/10 rounded-2xl text-xs font-black text-indigo-400 border border-indigo-500/20">
+                    --
+                </div>
+            </div>
+
+            <div id="modal-players-list" class="space-y-3 mb-8 max-h-[50vh] overflow-y-auto pr-2">
+                <!-- Players list here -->
+            </div>
+
+            <button onclick="closeSummary()" class="w-full py-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-2xl transition-all border border-white/5 uppercase tracking-widest text-xs">
+                Đóng lại
+            </button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

@@ -171,29 +171,29 @@ async function updateUI() {
                 
                 // Group details to show summary style
                 let detailsHtml = h.details.map(d => `
-                    <div class="flex justify-between text-xs py-1 border-b border-white/5 last:border-0">
-                        <span class="text-slate-400 font-medium">${d.name}</span>
-                        <span class="font-bold ${d.amount > 0 ? 'text-emerald-400' : 'text-rose-400'}">
+                    <div class="flex justify-between text-xs py-1 border-b border-amber-500/5 last:border-0">
+                        <span class="text-amber-200/60 font-medium">${d.name}</span>
+                        <span class="font-bold ${d.amount > 0 ? 'text-yellow-400' : 'text-red-400'}">
                             ${d.amount > 0 ? '+' : ''}${d.amount.toLocaleString()}
                         </span>
                     </div>
                 `).join('');
 
                 return `
-                <div class="history-card rounded-3xl p-6 relative">
+                <div class="history-card rounded-3xl p-6 relative shadow-lg">
                     <div class="flex justify-between items-start mb-4">
                         <div class="flex items-center">
-                            <div class="w-1.5 h-1.5 rounded-full bg-indigo-500 mr-2"></div>
-                            <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Ván ${roundIndex}</span>
-                            <span class="mx-2 text-slate-700">/</span>
-                            <span class="text-[10px] font-bold text-slate-500">${h.date}</span>
+                            <div class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-2"></div>
+                            <span class="text-[10px] font-black text-amber-400 uppercase tracking-widest">Ván ${roundIndex}</span>
+                            <span class="mx-2 text-amber-900/40">/</span>
+                            <span class="text-[10px] font-bold text-amber-200/40">${h.date}</span>
                         </div>
-                        <button onclick="handleDeleteRound(${h.id})" class="text-slate-700 hover:text-rose-500 transition-colors">
+                        <button onclick="handleDeleteRound(${h.id})" class="text-amber-900/60 hover:text-red-500 transition-colors">
                             <i data-lucide="trash-2" class="w-4 h-4"></i>
                         </button>
                     </div>
-                    <div class="text-sm text-slate-300 font-medium mb-4 italic leading-relaxed">"${h.raw_input}"</div>
-                    <div class="space-y-1 bg-black/20 p-4 rounded-2xl border border-white/5">
+                    <!-- <div class="text-sm text-amber-50/80 font-medium mb-4 italic leading-relaxed">"${h.raw_input}"</div> -->
+                    <div class="space-y-1 bg-black/20 p-4 rounded-2xl border border-amber-500/10">
                         ${detailsHtml}
                     </div>
                 </div>
@@ -209,9 +209,9 @@ async function updateUI() {
 function renderSetupChips() {
     const chipContainer = document.getElementById('player-chips');
     chipContainer.innerHTML = setupPlayers.map((name, i) => `
-        <div class="player-chip bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 px-4 py-2 rounded-2xl flex items-center text-xs font-bold uppercase tracking-wider">
+        <div class="player-chip bg-amber-500/10 border border-amber-500/20 text-amber-400 px-4 py-2 rounded-2xl flex items-center text-xs font-bold uppercase tracking-wider">
             ${name}
-            <button onclick="removeSetupPlayer(${i})" class="ml-3 text-slate-500 hover:text-rose-400 transition-colors">
+            <button onclick="removeSetupPlayer(${i})" class="ml-3 text-slate-100 hover:text-white transition-colors">
                 <i data-lucide="x" class="w-3.5 h-3.5"></i>
             </button>
         </div>
